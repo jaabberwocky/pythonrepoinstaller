@@ -26,18 +26,14 @@ def getTopDownloads(url = 'https://hugovk.github.io/top-pypi-packages/top-pypi-p
     
     return packages
 
-def setupBasket(path = None):
-    '''
-        Changes the BASKET_ROOT environment variable if needed.
-    '''
-    if path is not None:
-        os.environ["BASKET_ROOT"] = path
-    return None
-
 def initBasket():
     '''
         Initialises basket. Note that it changes the path based on the OS environment variable "BASKET_ROOT".
     '''
+    if os.path.isdir(os.path.join(os.environ['HOME'], '.basket')):
+        print(".basket already exists, deleting...")
+        os.chdir(os.environ['HOME'])
+        sp.run("rm -r .basket", shell=True)
     sp.run(["basket", "init"])
     return None
 
@@ -48,7 +44,9 @@ def downloadPackages(packages):
     if len(packages) == 0:
         raise Exception("List of packages is empty!")
     for p in tqdm(packages):
-        sp.run(["basket", "download"].append(p))
+        run_command = ['basket', 'download']
+        run_command.append(p)
+        sp.run(run_command)
     return None
 
 def getPackagesRequirements():
@@ -62,17 +60,23 @@ def getPackagesRequirements():
     os.chdir(os.environ['HOME'])
     os.chdir('.basket')
     print("Generating requirements.txt ...")
-    file = open('requirements.txt')
+    if os.path.isfile('requirements.txt'):
+        print("requirements.txt already exists, deleting...")
+        sp.run("rm requirements.txt", shell=True)
+    file = open('requirements.txt', 'w')
     for p in packages:
         s = "==".join(p.split(" "))
-        file.write(s)
+        file.write(s+"\n")
+    print("File generated!")
     return None
 
 def scanPackages(path="requirements.txt"):
     '''
         Runs safety check on requirements.txt.
     '''
-    sp.run(["safety", "check", "-r"].append(path))
+    os.chdir(os.environ['HOME'])
+    os.chdir('.basket')
+    sp.run(["safety", "check", "-r", path])
     return None
 
 if __name__ == "__main__":
