@@ -80,7 +80,7 @@ def scanPackages(path="requirements.txt"):
     return None
 
 if __name__ == "__main__":
-    packages = getTopDownloads()
+    packages = ['flask', 'sqlalchemy']
     initBasket()
     downloadPackages(packages)
     getPackagesRequirements()
